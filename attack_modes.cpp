@@ -2,7 +2,7 @@
 
 
 void BruteForceRec(const std::string& alphabet, size_t maxPasswordLength, const std::string& currentPermutation, const std::set<std::string>& hashSet, 
-                         std::vector<std::tuple<std::string, std::string>>& crackedPasswords, const std::string endPermutation, bool& reachedEndPermutation)
+                         std::vector<std::tuple<std::string, std::string>>& crackedPasswords, const std::string endPermutation, bool& reachedEndPermutation, AlgorithmHandler& currentAlgorithm)
 {
     if (reachedEndPermutation)
         return;
@@ -10,7 +10,7 @@ void BruteForceRec(const std::string& alphabet, size_t maxPasswordLength, const 
     if (currentPermutation == endPermutation && endPermutation != "")
         reachedEndPermutation = true;
 
-    std::string currentHash = md5(currentPermutation);
+    std::string currentHash = currentAlgorithm.HashPermutation(currentPermutation);
 
     if (hashSet.contains(currentHash))
     {
@@ -25,13 +25,13 @@ void BruteForceRec(const std::string& alphabet, size_t maxPasswordLength, const 
         for (auto c : alphabet)
         {
             std::string nextPermutation = currentPermutation + c;
-            BruteForceRec(alphabet, maxPasswordLength, nextPermutation, hashSet, crackedPasswords, endPermutation, reachedEndPermutation);
+            BruteForceRec(alphabet, maxPasswordLength, nextPermutation, hashSet, crackedPasswords, endPermutation, reachedEndPermutation, currentAlgorithm);
         }
     }
 }
 
 
-std::vector<std::tuple<std::string, std::string>> BruteForce(const std::string& alphabet, size_t maxLength, const std::set<std::string>& hashSet, 
+std::vector<std::tuple<std::string, std::string>> BruteForce(const std::string& alphabet, size_t maxLength, const std::set<std::string>& hashSet, AlgorithmHandler& currentAlgorithm,
                                                                    std::string startPermutation, std::string endPermutation)
 {
     std::vector<std::tuple<std::string, std::string>> crackedPasswords;
@@ -40,7 +40,7 @@ std::vector<std::tuple<std::string, std::string>> BruteForce(const std::string& 
 
     if (startPermutation == "" && endPermutation == "")
     {
-        BruteForceRec(alphabet, maxLength, startPermutation, hashSet, crackedPasswords, endPermutation, reachedEndPermutation);
+        BruteForceRec(alphabet, maxLength, startPermutation, hashSet, crackedPasswords, endPermutation, reachedEndPermutation, currentAlgorithm);
     }
     else
     {
@@ -56,7 +56,7 @@ std::vector<std::tuple<std::string, std::string>> BruteForce(const std::string& 
                 if (recStart[i] == startPermutation[i] && i != startPermutation.length() - 1)
                     continue;
                 recStart = recStart.substr(0, i + 1);
-                BruteForceRec(alphabet, maxLength, recStart, hashSet, crackedPasswords, endPermutation, reachedEndPermutation);
+                BruteForceRec(alphabet, maxLength, recStart, hashSet, crackedPasswords, endPermutation, reachedEndPermutation, currentAlgorithm);
             }
         }
     }
@@ -81,7 +81,7 @@ size_t CalculatePermutationNumber(const std::string& permutation, size_t period[
 }
 
 
-std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, 
+std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, AlgorithmHandler& currentAlgorithm,
                                                                       const std::string& startPermutation, const std::string& endPermutation)
 {
     std::vector<std::tuple<std::string, std::string>> crackedPasswords;
@@ -129,7 +129,7 @@ std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std:
 
             currentPermutation[j] = alphabets[j][r];
         }
-        std::string currentHash = md5(currentPermutation);
+        std::string currentHash = currentAlgorithm.HashPermutation(currentPermutation);
 
         if (hashSet.contains(currentHash))
         {
