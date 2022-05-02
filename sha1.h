@@ -16,8 +16,8 @@
         -- Zlatko Michailov <zlatko@michailov.org>
 */
 
-#ifndef SHA1_HPP
-#define SHA1_HPP
+#ifndef _SHA1_H
+#define _SHA1_H
 
 
 #include <cstdint>
@@ -36,7 +36,6 @@ public:
     void update(std::istream& is);
     std::string final();
     static std::string from_file(const std::string& filename);
-    static std::string sha1(const std::string& str);
 
 
 private:
@@ -335,6 +334,4 @@ inline std::string sha1(const std::string& str)
     checksum.update(str);
     return checksum.final();
 }
-
-
-#endif /* SHA1_HPP */
+#endif 
