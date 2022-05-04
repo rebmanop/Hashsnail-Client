@@ -30,6 +30,9 @@
     <ClCompile Include="range.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="benchmark.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="timer.h">
@@ -53,6 +56,9 @@
     <ClInclude Include="range.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="benchmark.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="example0.hash">
@@ -61,9 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="example.dict.txt">
-      <Filter>Resource Files</Filter>
-    </Text>
-    <Text Include="testdict.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>

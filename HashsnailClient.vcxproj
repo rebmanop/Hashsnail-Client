@@ -146,6 +146,7 @@
   <ItemGroup>
     <ClCompile Include="algorithms.cpp" />
     <ClCompile Include="attack_modes.cpp" />
+    <ClCompile Include="benchmark.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="md5.cpp" />
     <ClCompile Include="range.cpp" />
@@ -154,6 +155,7 @@
     <ClInclude Include="algorithms.h" />
     <ClInclude Include="alphabets.h" />
     <ClInclude Include="attack_modes.h" />
+    <ClInclude Include="benchmark.h" />
     <ClInclude Include="md5.h" />
     <ClInclude Include="range.h" />
     <ClInclude Include="sha1.h" />
@@ -164,7 +166,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="example.dict.txt" />
-    <Text Include="testdict.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

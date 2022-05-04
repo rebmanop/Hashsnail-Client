@@ -182,3 +182,4 @@ std::vector<hash_password_pair> DictionaryAttack(const std::set<std::string>& ha
     }
     return crackedPasswords;
 }
+  
