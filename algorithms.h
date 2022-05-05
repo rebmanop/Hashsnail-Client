@@ -10,7 +10,7 @@ class AlgorithmHandler
 {
 public:
 	AlgorithmHandler() = default;
-	virtual std::string HashPermutation(const std::string&);
+	virtual std::string HashPermutation(const std::string&) const;
 };
 
 
@@ -18,7 +18,7 @@ class MD5Handler : public AlgorithmHandler
 {
 public:
 	MD5Handler() = default;
-	std::string HashPermutation(const std::string&) override;
+	std::string HashPermutation(const std::string&) const override;
 };
 
 
@@ -26,7 +26,7 @@ class SHA1Handler : public AlgorithmHandler
 {
 public:
 	SHA1Handler() = default;
-	std::string HashPermutation(const std::string&) override;
+	std::string HashPermutation(const std::string&) const override;
 };
 
 #endif

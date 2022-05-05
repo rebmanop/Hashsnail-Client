@@ -6,6 +6,7 @@
 #include "attack_modes.h"
 #include "algorithms.h"
 #include <thread>
+
 #include "benchmark.h"
 
 
@@ -24,7 +25,31 @@ int main()
    Timer timer;
    MD5Handler md5Algorithm;
    SHA1Handler sha1Algorithm;
-   Range range = Range("00001", "00005");
+
+
+   unsigned int n = std::thread::hardware_concurrency();
+   std::cout << n << " concurrent threads are supported.\n";
+
+   Range range0 = Range("aaaaaa", "dgnaaa");
+   Range range1 = Range("dgnaaa", "gnaaaa");
+   Range range2 = Range("gnaaaa", "jtnaaa");
+   Range range3 = Range("jtnaaa", "naaaaa");
+   Range range4 = Range("naaaaa", "qgmzzs");
+   Range range5 = Range("qgmzzs", "tnaaaa");
+   Range range6 = Range("tnaaaa", "wtnaai");
+   Range range7 = Range("wtnaai", "zzzzzz");
+
+
+
+   std::vector<std::string> alphabets;
+   alphabets.push_back(alphabetL);
+   alphabets.push_back(alphabetL);
+   alphabets.push_back(alphabetL);
+   alphabets.push_back(alphabetL);
+   alphabets.push_back(alphabetL);
+   alphabets.push_back(alphabetL);
+
+
 
 
    std::vector<hash_password_pair> crackedPasswords;
@@ -44,17 +69,33 @@ int main()
       dict.push_back(line);
    infile1.close();
 
-   Benchmark benchmark;
+   //Benchmark benchmark;
+   //
+   //benchmark.RunBenchmark();
+   //std::cout << benchmark.GetResults() << std::endl;
 
-   benchmark.RunBenchmark();
-   std::cout << benchmark.GetResults() << std::endl;
+   timer.Start();
+   std::thread thread0 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range0));
+   std::thread thread1 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range1));
+   std::thread thread2 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range2));
+   std::thread thread3 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range3));
+   std::thread thread4 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range4));
+   std::thread thread5 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range5));
+   std::thread thread6 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range6));
+   std::thread thread7 = std::thread(MaskBasedBruteForce, std::ref(hashSet), std::ref(alphabets), std::ref(md5Algorithm), std::ref(range7));
+   
+   thread0.join();
+   thread1.join();
+   thread2.join();
+   thread3.join();
+   thread4.join();
+   thread5.join();
+   thread6.join();
+   thread7.join();
 
 
-
-   //timer.Start();
-   //crackedPasswords = DictionaryAttack(hashSet, dict, md5Algorithm);
-   //timer.End();
-   //std::cout << timer.GetTime("s")<< "s" << std::endl;
+   timer.End();
+   std::cout << timer.GetTime("s")<< "s" << std::endl;
    
    return 0;
 }

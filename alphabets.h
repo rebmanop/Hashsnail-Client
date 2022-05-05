@@ -3,7 +3,7 @@
 
 #include <string>
 
-static const std::string alphabetL = "abcdefghijklmnopqrstuvwxyz";
+const std::string alphabetL = "abcdefghijklmnopqrstuvwxyz";
 
 static const std::string alphabetU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

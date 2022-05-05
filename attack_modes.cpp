@@ -83,7 +83,7 @@ size_t CalculatePermutationNumber(const std::string& permutation, size_t period[
 
 
 std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, 
-                                                                      AlgorithmHandler& currentAlgorithm, const Range& range)
+                                                                            const AlgorithmHandler& currentAlgorithm, const Range& range)
 {
     std::vector<hash_password_pair> crackedPasswords;
 
@@ -117,7 +117,12 @@ std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std:
 
         endNumber = CalculatePermutationNumber(finalPermutation, period, alphabets);
     }
+    else if (range.StartNotSet())
+    {
+        endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, alphabets);
+    }
     else
+        startNumber = CalculatePermutationNumber(range.GetStartPermutation(), period, alphabets);
         endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, alphabets);
 
 

@@ -9,17 +9,17 @@ Benchmark::Benchmark(int benchTimeSeconds)
 void Benchmark::RunBenchmark()
 {
 	unsigned long hashCounter = 0;
-	bool Finished = false;
-	std::thread benchmarkThread = std::thread([&]() { while (!Finished) { md5.HashPermutation("1234567"); hashCounter++; } });
+	bool finished = false;
+	std::thread benchmarkThread = std::thread([&]() { while (!finished) { md5.HashPermutation("bench"); hashCounter++; } });
 	std::this_thread::sleep_for(std::chrono::seconds(m_BenchTimeSeconds));
-	Finished = true;
+	finished = true;
 	benchmarkThread.join();
 
-	resultMhs = (hashCounter / (double)m_BenchTimeSeconds) / 1000000;
+	resultHs = hashCounter / (double)m_BenchTimeSeconds;
 }
 
 double Benchmark::GetResults()
 {
-	return resultMhs;
+	return resultHs;
 }
 

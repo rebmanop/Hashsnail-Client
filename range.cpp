@@ -2,8 +2,8 @@
 
 Range::Range(const std::string startPermutation, const std::string endPermutation)
 {
-	this->m_StartPermutation = startPermutation;
-	this->m_EndPermutation = endPermutation;
+	m_StartPermutation = startPermutation;
+	m_EndPermutation = endPermutation;
 }
 
 const std::string& Range::GetStartPermutation() const

@@ -21,8 +21,8 @@ std::vector<hash_password_pair> BruteForce(const std::string& alphabet, size_t m
 
 size_t CalculatePermutationNumber(const std::string& permutation, size_t period[], const std::vector<std::string>& alphabets);
 
-std::vector<hash_password_pair> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, AlgorithmHandler& currentAlgorithm,
-                                                       const Range& range = Range());
+std::vector<hash_password_pair> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, const AlgorithmHandler& currentAlgorithm,
+                                                       const Range& range);
 
 std::pair<int, int> FindIndexRange(const std::vector<std::string> dictionary, const Range& range);
 
