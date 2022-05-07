@@ -22,4 +22,3 @@ double Benchmark::GetResults()
 {
 	return resultHs;
 }
-

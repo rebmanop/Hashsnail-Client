@@ -9,8 +9,7 @@
 class AlgorithmHandler
 {
 public:
-	AlgorithmHandler() = default;
-	virtual std::string HashPermutation(const std::string&) const;
+	virtual std::string HashPermutation(const std::string&) const = 0;
 };
 
 
