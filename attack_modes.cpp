@@ -1,270 +1,267 @@
 #include "attack_modes.h"
 
 
+#define PRINT_MUTATIONS 0
 
-void MaskBasedBruteForceAttack::Start(const std::set<std::string>& hashSet, const AlgorithmHandler& currentAlgorithm, const Range& range, const AmSpecificParams& params) 
+
+std::vector<hash_password_pair> AttackMode::GetCrackedPasswords() const
 {
-    int passwordLength = params.alphabets.size();
-    char* currentPermutation = new char[passwordLength];
-    currentPermutation[passwordLength] = '\0';
-
-    size_t* period = new size_t[passwordLength];
-    period[passwordLength - 1] = 1;
-
-    for (int i = passwordLength - 2; i >= 0; i--)
-        period[i] = period[i + 1] * params.alphabets[i + 1].length();
-
-    size_t startNumber = 0;
-    size_t endNumber = 0;
-
-    if (range.StartNotSet() && range.EndNotSet())
-    {
-        std::string finalPermutation;
-        for (auto& alphabet : params.alphabets)
-            finalPermutation += alphabet[alphabet.length() - 1];
-
-        endNumber = CalculatePermutationNumber(finalPermutation, period, params.alphabets);
-    }
-    else if (range.EndNotSet() && !range.StartNotSet())
-    {
-        startNumber = CalculatePermutationNumber(range.GetStartPermutation(), period, params.alphabets);
-        std::string finalPermutation;
-        for (auto& alphabet : params.alphabets)
-            finalPermutation += alphabet[alphabet.length() - 1];
-
-        endNumber = CalculatePermutationNumber(finalPermutation, period, params.alphabets);
-    }
-    else if (range.StartNotSet() && !range.EndNotSet())
-    {
-        endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, params.alphabets);
-    }
-    else
-    {
-        startNumber = CalculatePermutationNumber(range.GetStartPermutation(), period, params.alphabets);
-        endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, params.alphabets);
-    }
-
-
-    for (size_t i = startNumber; i < endNumber + 1; i++)
-    {
-        for (size_t j = 0; j < passwordLength; j++)
-        {
-            int t = i / period[j];
-            int r = t % params.alphabets[j].length();
-
-            currentPermutation[j] = params.alphabets[j][r];
-        }
-        std::string currentHash = currentAlgorithm.HashPermutation(currentPermutation);
-        //std::cout << currentPermutation << std::endl;
-
-        if (hashSet.contains(currentHash))
-        {
-            std::cout << currentHash << ": " << currentPermutation << std::endl;
-           // m_CrackedPasswords.push_back({ currentHash, currentPermutation });
-        }
-    }
-
-    delete[] currentPermutation;
-    delete[] period;
-}
-
-std::vector<Range> MaskBasedBruteForceAttack::SubdivideRange(const Range& initialRange, const AmSpecificParams& params, int numberOfDivisions)
-{
-    std::vector<Range> ranges;
-    ranges.emplace_back("aaaaaa", "dgnaaa");
-    ranges.emplace_back("dgnaaa", "gnaaaa");
-    ranges.emplace_back("gnaaaa", "jtnaaa");
-    ranges.emplace_back("jtnaaa", "naaaaa");
-    ranges.emplace_back("naaaaa", "qgmzzs");
-    ranges.emplace_back("qgmzzs", "tnaaaa");
-    ranges.emplace_back("tnaaaa", "wtnaai");
-    ranges.emplace_back("wtnaai", "zzzzzz");
-
-    return ranges;
+    return m_CrackedPasswords;
 }
 
 
-size_t MaskBasedBruteForceAttack::CalculatePermutationNumber(const std::string& permutation, size_t period[], const std::vector<std::string>& alphabets)
+BruteForceAttack::BruteForceAttack(std::set<std::string>&& hashSet, size_t maxPassLength, const std::string& alphabet, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm)
 {
-    size_t permutationNumber = 0;
-    for (size_t i = 0; i < alphabets.size(); i++)
-    {
-        size_t symbolIndex = 0;
-        for (size_t j = 0; j < alphabets[i].length(); j++)
-        {
-            if (alphabets[i][j] == permutation[i])
-                symbolIndex = j;
-        }
-        permutationNumber += period[i] * symbolIndex;
-    }
-    return permutationNumber;
+    m_HashSet = std::move(hashSet);
+    m_MaxPasswordLength = maxPassLength;
+    m_Algorithm = algorithm;
+    m_Alphabet = alphabet;
+    m_InitialRange = range;
+}
+
+
+MaskBasedBruteForceAttack::MaskBasedBruteForceAttack(std::set<std::string>&& hashSet, std::vector<std::string>&& alphabets, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm)
+{
+    m_HashSet = std::move(hashSet);
+    m_Alphabets = std::move(alphabets);
+    m_InitialRange = range;
+    m_Algorithm = algorithm;
+}
+
+
+DictionaryAttack::DictionaryAttack(std::set<std::string>&& hashSet, std::vector<std::string>&& dictionary, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm)
+{
+    m_HashSet = std::move(hashSet);
+    m_Dictionary = std::move(dictionary);
+    m_InitialRange = range;
+    m_Algorithm = algorithm;
 }
 
 
 
-#if 0
-
-void BruteForceRec(const std::string& alphabet, size_t maxPasswordLength, const std::string& currentPermutation, const std::set<std::string>& hashSet, 
-                         std::vector<hash_password_pair>& crackedPasswords, const std::string endPermutation, bool& reachedEndPermutation, AlgorithmHandler& currentAlgorithm)
+void BruteForceAttack::StartThread(const Range& range)
 {
-    if (reachedEndPermutation)
-        return;
-
-    if (currentPermutation == endPermutation && endPermutation != "")
-        reachedEndPermutation = true;
-
-    //std::cout << currentPermutation << ::std::endl;
-    std::string currentHash = currentAlgorithm.HashPermutation(currentPermutation);
-
-    if (hashSet.contains(currentHash))
-    {
-        std::cout << currentHash << ": " << currentPermutation << std::endl;
-        crackedPasswords.push_back({ currentHash, currentPermutation });
-    }
-
-    if (currentPermutation.length() == maxPasswordLength)
-        return;
-    else
-    {
-        for (auto c : alphabet)
-        {
-            std::string nextPermutation = currentPermutation + c;
-            BruteForceRec(alphabet, maxPasswordLength, nextPermutation, hashSet, crackedPasswords, endPermutation, reachedEndPermutation, currentAlgorithm);
-        }
-    }
-}
-
-
-std::vector<std::tuple<std::string, std::string>> BruteForce(const std::string& alphabet, size_t maxLength, const std::set<std::string>& hashSet, AlgorithmHandler& currentAlgorithm,
-                                                                   const Range& range)
-{
-    std::vector<hash_password_pair> crackedPasswords;
-
     bool reachedEndPermutation = false;
 
+
     if (range.StartNotSet() && range.EndNotSet())
     {
-        BruteForceRec(alphabet, maxLength, range.GetStartPermutation(), hashSet, crackedPasswords, range.GetEndPermutation(), reachedEndPermutation, currentAlgorithm);
+        BruteForceRec(range.GetStartPermutation(), range.GetEndPermutation(), reachedEndPermutation);
     }
     else
     {
         for (int i = range.GetStartPermutation().length() - 1; i >= 0; i--)
         {
-            if (range.GetStartPermutation()[i] == alphabet[alphabet.length() - 1] && i != 0 && i != range.GetStartPermutation().length() - 1)
+            if (range.GetStartPermutation()[i] == m_Alphabet[m_Alphabet.length() - 1] && i != 0 && i != range.GetStartPermutation().length() - 1)
                 continue;
 
-            for (int j = alphabet.find(range.GetStartPermutation()[i]); j < alphabet.length(); j++)
+            for (int j = m_Alphabet.find(range.GetStartPermutation()[i]); j < m_Alphabet.length(); j++)
             {
                 std::string recStart = range.GetStartPermutation();
-                recStart[i] = alphabet[j];
+                recStart[i] = m_Alphabet[j];
                 if (recStart[i] == range.GetStartPermutation()[i] && i != range.GetStartPermutation().length() - 1)
                     continue;
                 recStart = recStart.substr(0, i + 1);
-                BruteForceRec(alphabet, maxLength, recStart, hashSet, crackedPasswords, range.GetEndPermutation(), reachedEndPermutation, currentAlgorithm);
+                BruteForceRec(recStart, range.GetEndPermutation(), reachedEndPermutation);
             }
         }
     }
-    return crackedPasswords;
 }
 
 
-size_t CalculatePermutationNumber(const std::string& permutation, size_t period[], const std::vector<std::string>& alphabets)
+
+void MaskBasedBruteForceAttack::StartThread(const Range& range)
 {
-    size_t permutationNumber = 0;
-    for (size_t i = 0; i < alphabets.size(); i++)
-    {
-        size_t symbolIndex = 0;
-        for (size_t j = 0; j < alphabets[i].length(); j++)
-        {
-            if (alphabets[i][j] == permutation[i])
-                symbolIndex = j;
-        }
-        permutationNumber += period[i] * symbolIndex;
-    }
-    return permutationNumber;
-}
-
-
-std::vector<std::tuple<std::string, std::string>> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, 
-                                                                            const AlgorithmHandler& currentAlgorithm, const Range& range)
-{
-    std::vector<hash_password_pair> crackedPasswords;
-
-    int passwordLength = alphabets.size();
-    char* currentPermutation = new char[passwordLength];
+    int passwordLength = m_Alphabets.size();
+    char* currentPermutation = new char[passwordLength + 1];
     currentPermutation[passwordLength] = '\0';
 
-    size_t* period = new size_t[passwordLength];
+   long long* period = new long long[passwordLength];
     period[passwordLength - 1] = 1;
 
     for (int i = passwordLength - 2; i >= 0; i--)
-        period[i] = period[i + 1] * alphabets[i + 1].length();
+        period[i] = period[i + 1] *  m_Alphabets[i + 1].length();
 
-    size_t startNumber = 0;
-    size_t endNumber = 0;
 
-    if (range.StartNotSet() && range.EndNotSet())
+    long long startNumber = range.GetStartPermutationNumber();
+    long long endNumber = range.GetEndPermutationNumber();
+   
+    for (long long i = startNumber; i < endNumber + 1; i++)
     {
-        std::string finalPermutation;
-        for (auto& alphabet : alphabets)
-            finalPermutation += alphabet[alphabet.length() - 1];
-
-        endNumber = CalculatePermutationNumber(finalPermutation, period, alphabets);
-    }
-    else if (range.EndNotSet())
-    {
-        startNumber = CalculatePermutationNumber(range.GetStartPermutation(), period, alphabets);
-        std::string finalPermutation;
-        for (auto& alphabet : alphabets)
-            finalPermutation += alphabet[alphabet.length() - 1];
-
-        endNumber = CalculatePermutationNumber(finalPermutation, period, alphabets);
-    }
-    else if (range.StartNotSet())
-    {
-        endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, alphabets);
-    }
-    else
-        startNumber = CalculatePermutationNumber(range.GetStartPermutation(), period, alphabets);
-        endNumber = CalculatePermutationNumber(range.GetEndPermutation(), period, alphabets);
-
-
-    for (size_t i = startNumber; i < endNumber + 1; i++)
-    {
-        for (size_t j = 0; j < passwordLength; j++)
+        for (long long j = 0; j < passwordLength; j++)
         {
-            int t = i / period[j];
-            int r = t % alphabets[j].length();
+            long long t = i / period[j];
+            long long r = t % m_Alphabets[j].length();
 
-            currentPermutation[j] = alphabets[j][r];
+            currentPermutation[j] = m_Alphabets[j][r];
         }
-        std::string currentHash = currentAlgorithm.HashPermutation(currentPermutation);
-        //std::cout << currentPermutation << std::endl;
+        std::string currentHash = m_Algorithm->HashPermutation(currentPermutation);
+        
+        if (PRINT_MUTATIONS)
+            std::cout << currentPermutation << std::endl;
 
-        if (hashSet.contains(currentHash))
+        if (m_HashSet.contains(currentHash))
         {
-            std::cout << currentHash << ": " << currentPermutation << std::endl;
-            crackedPasswords.push_back({ currentHash, currentPermutation });
+            std::lock_guard<std::mutex> lock(m_CrackedPasswordsMutex);
+            spdlog::trace("{}: {}", currentHash, currentPermutation);
+            m_CrackedPasswords.push_back({ currentHash, currentPermutation });
         }
     }
+
 
     delete[] currentPermutation;
     delete[] period;
-
-    return crackedPasswords;
 }
 
 
-std::pair<int, int> FindIndexRange(const std::vector<std::string> dictionary, const Range& range)
+
+void DictionaryAttack::StartThread(const Range& range)
+{
+
+    for (long long i = range.GetStartPermutationNumber(); i <= range.GetEndPermutationNumber(); i++)
+    {
+         if (PRINT_MUTATIONS)
+            std::cout << m_Dictionary[i] << std::endl;
+
+        std::string currentHash = m_Algorithm->HashPermutation(m_Dictionary[i]);
+        if (m_HashSet.contains(currentHash))
+        {
+            std::lock_guard<std::mutex> lock(m_CrackedPasswordsMutex);
+            spdlog::trace("{}: {}", currentHash, m_Dictionary[i]);
+            m_CrackedPasswords.push_back({ currentHash, m_Dictionary[i] });
+        }
+    }
+}
+
+
+
+std::vector<Range> BruteForceAttack::SubdivideRange(int numberOfDivisions)
+{
+    std::vector<Range> ranges;
+    ranges.emplace_back("", "");
+    return ranges;
+}
+
+
+
+std::vector<Range> MaskBasedBruteForceAttack::SubdivideRange(int numberOfDivisions)
+{
+    size_t passwordLength = m_Alphabets.size();
+
+    long long* period = new long long[passwordLength];
+    period[passwordLength - 1] = 1;
+
+    for (int i = passwordLength - 2; i >= 0; i--)
+        period[i] = period[i + 1] * m_Alphabets[i + 1].length();
+
+    long long startPermutationNumber = CalculatePermutationNumber(m_InitialRange.GetStartPermutation(), period);
+    long long endPermutationNumber = 0;
+
+    if (m_InitialRange.EndNotSet())
+    {
+        std::string finalPermutation;
+        for (auto& alphabet : m_Alphabets)
+            finalPermutation += alphabet[alphabet.length() - 1];
+
+        endPermutationNumber = CalculatePermutationNumber(finalPermutation, period);
+    }
+    else
+        endPermutationNumber = CalculatePermutationNumber(m_InitialRange.GetEndPermutation(), period);
+
+    std::vector<Range> ranges;
+
+    long long passwordsToHash = endPermutationNumber - startPermutationNumber + 1;
+    long long hashesPerThread = passwordsToHash / numberOfDivisions;
+
+    long long tempIndex;
+    for (int i = 1; i <= numberOfDivisions; i++)
+    {
+        tempIndex = startPermutationNumber + hashesPerThread;
+        if (i == numberOfDivisions && tempIndex < endPermutationNumber)
+            ranges.push_back(Range(startPermutationNumber, endPermutationNumber));
+        else
+            ranges.push_back(Range(startPermutationNumber, tempIndex));
+
+        startPermutationNumber = tempIndex;
+    }
+     
+    delete[] period;
+
+    return ranges;
+}
+
+
+
+std::vector<Range> DictionaryAttack::SubdivideRange(int numberOfDivisions)
+{
+    std::vector<Range> ranges;
+
+    auto[startIndex, endIndex] = FindIndexRange(m_InitialRange);
+    
+    int passwordsToHash = endIndex - startIndex + 1;
+    int hashesPerThread = passwordsToHash / numberOfDivisions;
+
+    int tempIndex;
+    for (int i = 1; i <= numberOfDivisions; i++)
+    {
+        tempIndex = startIndex + hashesPerThread;
+        if (i == numberOfDivisions && tempIndex < endIndex)
+            ranges.push_back(Range(startIndex, endIndex));
+        else
+            ranges.push_back(Range(startIndex, tempIndex));
+
+        startIndex = tempIndex;
+    }
+    return ranges;
+}
+
+
+
+void BruteForceAttack::BruteForceRec(const std::string& currentPermutation, const std::string endPermutation, bool& reachedEndPermutation)
+{
+  if (reachedEndPermutation)
+        return;
+
+    if (currentPermutation == endPermutation && endPermutation != "")
+        reachedEndPermutation = true;
+
+    if (PRINT_MUTATIONS)
+        std::cout << currentPermutation << ::std::endl;
+    
+    std::string currentHash = m_Algorithm->HashPermutation(currentPermutation);
+
+    if (m_HashSet.contains(currentHash))
+    {
+        std::lock_guard<std::mutex> lock(m_CrackedPasswordsMutex);
+        spdlog::trace("{}: {}", currentHash, currentPermutation);
+
+        m_CrackedPasswords.push_back({ currentHash, currentPermutation });
+    }
+
+    if (currentPermutation.length() == m_MaxPasswordLength)
+        return;
+    else
+    {
+        for (auto c : m_Alphabet)
+        {
+            std::string nextPermutation = currentPermutation + c;
+            BruteForceRec(nextPermutation, endPermutation, reachedEndPermutation);
+        }
+    }
+}
+
+
+
+std::pair<int, int> DictionaryAttack::FindIndexRange(const Range& range)
 {
     int startIndex = 0;
-    int endIndex = dictionary.size() - 1;
+    int endIndex = m_Dictionary.size() - 1;
 
-    for (int i = 0; i < dictionary.size(); i++)
+    for (int i = 0; i < m_Dictionary.size(); i++)
     {
-        if (dictionary[i] == range.GetStartPermutation() && !range.StartNotSet())
+        if (m_Dictionary[i] == range.GetStartPermutation() && !range.StartNotSet())
             startIndex = i;
-        else if (dictionary[i] == range.GetEndPermutation() && !range.EndNotSet())
+        else if (m_Dictionary[i] == range.GetEndPermutation() && !range.EndNotSet())
             endIndex = i;
     }
 
@@ -272,22 +269,19 @@ std::pair<int, int> FindIndexRange(const std::vector<std::string> dictionary, co
 }
 
 
-std::vector<hash_password_pair> DictionaryAttack(const std::set<std::string>& hashSet, const std::vector<std::string>& dictionary, AlgorithmHandler& currentAlgorithm, const Range& range)
+
+long long MaskBasedBruteForceAttack::CalculatePermutationNumber(const std::string& permutation, long long period[])
 {
-    std::vector<hash_password_pair> crackedPasswords;
-
-    auto[startIndex, endIndex] = FindIndexRange(dictionary, range);
-
-    for (int i = startIndex; i <= endIndex; i++)
+    long long permutationNumber = 0;
+    for (size_t i = 0; i < m_Alphabets.size(); i++)
     {
-        //std::cout << dictionary[i] << std::endl;
-        std::string currentHash = currentAlgorithm.HashPermutation(dictionary[i]);
-        if (hashSet.contains(currentHash))
+        long long symbolIndex = 0;
+        for (size_t j = 0; j < m_Alphabets[i].length(); j++)
         {
-            std::cout << currentHash << ": " << dictionary[i] << std::endl;
-            crackedPasswords.push_back({ currentHash, dictionary[i]});
+            if (m_Alphabets[i][j] == permutation[i])
+                symbolIndex = j;
         }
+        permutationNumber += period[i] * symbolIndex;
     }
-    return crackedPasswords;
+    return permutationNumber;
 }
-#endif 

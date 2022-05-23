@@ -16,10 +16,7 @@
         -- Zlatko Michailov <zlatko@michailov.org>
 */
 
-#ifndef _SHA1_H
-#define _SHA1_H
-
-
+#pragma once
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
@@ -334,4 +331,3 @@ inline std::string sha1(const std::string& str)
     checksum.update(str);
     return checksum.final();
 }
-#endif 

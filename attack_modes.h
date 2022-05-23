@@ -1,84 +1,85 @@
-#ifndef _ATTACK_MODES_H
-#define _ATTACK_MODES_H
-
-#include<string>
+#pragma once
 #include<set>
 #include<vector>
+#include <mutex>
 #include <iostream>
 #include "range.h"
 #include "algorithms.h"
+#include "spdlog/spdlog.h"
 
 
-typedef std::tuple<std::string, std::string> hash_password_pair;
-
-
-struct AmSpecificParams
-{
-    std::string alphabet;
-    size_t maxLength;
-    std::vector<std::string> alphabets;
-    std::vector<std::string> dictionary;
-};
+typedef std::pair<std::string, std::string> hash_password_pair;
 
 
 class AttackMode
 {
 public:
-    virtual void Start(const std::set<std::string>& hashSet, const AlgorithmHandler& currentAlgorithm, const Range& range, const AmSpecificParams& params) = 0;
-    virtual std::vector<Range> SubdivideRange(const Range& initialRange, const AmSpecificParams& params, int numberOfDivisions)  = 0;
+    virtual void StartThread(const Range& range) = 0;
+    virtual std::vector<Range> SubdivideRange(int numberOfDivisions) = 0;
+    
+    std::vector<hash_password_pair> GetCrackedPasswords() const;
 
 protected:
     std::vector<hash_password_pair> m_CrackedPasswords;
+    std::mutex m_CrackedPasswordsMutex;
+    std::set<std::string> m_HashSet;
+    std::shared_ptr<AlgorithmHandler> m_Algorithm;
+    Range m_InitialRange;
 };
 
-
-class MaskBasedBruteForceAttack : public AttackMode
-{
-public:
-    void Start(const std::set<std::string>& hashSet, const AlgorithmHandler& currentAlgorithm, const Range& range, const AmSpecificParams& params) override;
-    std::vector<Range> SubdivideRange(const Range& initialRange, const AmSpecificParams& params, int numberOfDivisions)  override;
-
-private:
-    size_t CalculatePermutationNumber(const std::string& permutation, size_t period[], const std::vector<std::string>& alphabets);
-};
 
 
 class BruteForceAttack : public AttackMode
 {
 public:
-    void Start(const std::set<std::string>& hashSet, const AlgorithmHandler& currentAlgorithm, const Range& range, const AmSpecificParams& params) override;
-    std::vector<Range> SubdivideRange(const Range& initialRange, const AmSpecificParams& params, int numberOfDivisions)  override;
+    BruteForceAttack(std::set<std::string>&& hashSet, size_t maxPassLength, const std::string& alphabet, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm);
 
+    void StartThread(const Range& range) override;
+    std::vector<Range> SubdivideRange(int numberOfDivisions)  override;
+
+private:
+    void BruteForceRec(const std::string& currentPermutation, const std::string endPermutation, bool& reachedEndPermutation);
+
+private:
+    size_t m_MaxPasswordLength;
+    std::string m_Alphabet;
 };
+
+
+
+class MaskBasedBruteForceAttack : public AttackMode
+{
+public:
+    
+    MaskBasedBruteForceAttack(std::set<std::string>&& hashSet, std::vector<std::string>&& alphabets, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm);
+
+
+    void StartThread(const Range& range) override;
+    std::vector<Range> SubdivideRange(int numberOfDivisions)  override;
+
+
+private:
+    long long CalculatePermutationNumber(const std::string& permutation, long long period[]);
+
+private:  
+    std::vector<std::string> m_Alphabets;
+};
+
+
 
 class DictionaryAttack : public AttackMode
 {
 public:
-    void Start(const std::set<std::string>& hashSet, const AlgorithmHandler& currentAlgorithm, const Range& range, const AmSpecificParams& params) override;
-    std::vector<Range> SubdivideRange(const Range& initialRange, const AmSpecificParams& params, int numberOfDivisions)  override;
+    DictionaryAttack(std::set<std::string>&& hashSet, std::vector<std::string>&& dictionary, const Range& range, std::shared_ptr<AlgorithmHandler> algorithm);
 
+
+    void StartThread(const Range& range) override;
+    std::vector<Range> SubdivideRange(int numberOfDivisions)  override;
+
+
+private:
+    std::pair<int, int> FindIndexRange(const Range& range);
+
+private:
+    std::vector<std::string> m_Dictionary;
 };
-
-
-#if 0
-
-void BruteForceRec(const std::string& alphabet, size_t maxPasswordLength, const std::string& currentPermutation, const std::set<std::string>& hashSet,
-                    std::vector<hash_password_pair>& crackedPasswords, const std::string endPermutation, bool& reachedEndPermutation, const AlgorithmHandler& currentAlgorithm);
-
-std::vector<hash_password_pair> BruteForce(const std::string& alphabet, size_t maxLength,
-                                                                const std::set<std::string>& hashSet, AlgorithmHandler& currentAlgorithm, const Range& range = Range());
-
-size_t CalculatePermutationNumber(const std::string& permutation, size_t period[], const std::vector<std::string>& alphabets);
-
-std::vector<hash_password_pair> MaskBasedBruteForce(const std::set<std::string>& hashSet, const std::vector<std::string>& alphabets, const AlgorithmHandler& currentAlgorithm,
-                                                       const Range& range);
-
-std::pair<int, int> FindIndexRange(const std::vector<std::string> dictionary, const Range& range);
-
-
-std::vector<hash_password_pair> DictionaryAttack(const std::set<std::string>& hashSet, const std::vector<std::string>& dictionary, AlgorithmHandler& currentAlgorithm, 
-                                                    const Range& range = Range());
-
-#endif
-
-#endif

@@ -1,6 +1,4 @@
-#ifndef _TIMER_H
-#define _TIMER_H
-
+#pragma once
 #include<chrono>
 
 class Timer
@@ -39,4 +37,3 @@ private:
 	std::chrono::time_point<std::chrono::steady_clock> m_Start, m_End;
 	float m_TimePassed = -1;
 };
-#endif

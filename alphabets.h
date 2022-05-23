@@ -1,7 +1,6 @@
-#ifndef _ALPHABETS_H
-#define _ALPHABETS_H
-
+#pragma once
 #include <string>
+#include <map>
 
 const std::string alphabetL = "abcdefghijklmnopqrstuvwxyz";
 
@@ -15,4 +14,9 @@ static const std::string alphabetLUD = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn
 
 static const std::string alphabetTest = "abc";
 
-#endif
+
+const std::string& GetAlphabet(const std::string& token);
+
+
+
+

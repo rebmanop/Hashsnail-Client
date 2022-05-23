@@ -1,139 +1,127 @@
+#include <ranges>
 #include <sstream>
 #include <fstream>
 #include <thread>
 #include "timer.h"
 #include "range.h"
 #include "alphabets.h"
-#include "attack_modes.h"
-#include "algorithms.h"
 #include "benchmark.h"
+#include "TCPClient.h"
+#include "algorithms.h"
+#include "attack_modes.h"
+#include "spdlog/spdlog.h"
+#include "message_parser.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+
+#define TESTING_LOCALLY 
+
+#define DEFAULT_LOG_PATTERN "%^%v%$"
+#define WHILE_ATTACKING_LOG_PATTERN "%^[%T]%$ %v"
 
 
-#ifdef _WIN32
-#define _WIN32_WINNT 0x0A00
-#endif
-
-
-#define ASIO_STANDALONE
-#include <asio.hpp>
-#include <asio/ts/buffer.hpp>
-#include <asio/ts/internet.hpp>
-
-
-void StartMultiThreadedAttack(AttackMode& am, const std::set<std::string>& hashSet, const AlgorithmHandler& a, const AmSpecificParams& op, const Range& initialRange)
+void StartAttack(AttackMode& am, bool multithreaded = true)
 {
-    unsigned int nThreads = std::thread::hardware_concurrency();
-    std::vector<Range> ranges = am.SubdivideRange(initialRange, op, nThreads);
+    spdlog::set_pattern(WHILE_ATTACKING_LOG_PATTERN);
+    unsigned int nThreads = 1;
+    if (multithreaded) 
+         nThreads = std::thread::hardware_concurrency();
+       
+    std::vector<Range> ranges = am.SubdivideRange(nThreads);
 
     std::vector<std::thread> threads;
     for (std::size_t i = 0; i < nThreads; i++)
-    {
-        threads.emplace_back(&AttackMode::Start, std::ref(am), std::ref(hashSet), std::ref(a), std::ref(ranges[i]), std::ref(op));
-    }
+        threads.emplace_back(&AttackMode::StartThread, std::ref(am), ranges[i]);
 
     for (auto& thread : threads)
         thread.join();
+    spdlog::set_pattern(DEFAULT_LOG_PATTERN);
 }
 
 
-int main()
+MessageHandler GetMessageHandler(TCPClient& client, std::set<std::string>& hashSet, std::vector<std::string>& dictionary)
 {
-   Timer timer;
-   MD5Handler md5Algorithm;
-   SHA1Handler sha1Algorithm;
-   
-   std::set<std::string> hashSet;
-   std::vector<std::string> dict;
+    MessageHandler OnMessage = [&](const std::string& message)
+    {
+        if (message[0] == MessageType::BenchmarkRequest)
+        {
+            spdlog::trace("Received benchmark request.");
 
-   std::string line;
-   std::ifstream infile("example0.hash");
-   while (std::getline(infile, line))
-        hashSet.insert(line);
-   infile.close();
+            Benchmark benchmark = MessageParser::ParseBenchmarkRequestMessage(message);
+            
+            spdlog::trace("Starting benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
+            benchmark.RunMultiThread();
 
+            spdlog::trace("Sending back benchmark results."); 
+            client.Post(MessageParser::AssembleBenchmarkResultString(benchmark));
 
-   std::ifstream infile1("example.dict.txt");
-   while (std::getline(infile1, line))
-      dict.push_back(line);
-   infile1.close();
+            spdlog::info("Waiting for a job from the server...");
+        }
 
-   MaskBasedBruteForceAttack mbba;
-   
-   AmSpecificParams op;
-   op.alphabets.push_back(alphabetL);
-   op.alphabets.push_back(alphabetL);
-   op.alphabets.push_back(alphabetL);
-   op.alphabets.push_back(alphabetL);
-   op.alphabets.push_back(alphabetL);
-   op.alphabets.push_back(alphabetL);
-   
-   
-   timer.Start();
-   StartMultiThreadedAttack(mbba, hashSet, md5Algorithm, op, Range());
+        else if (message[0] == MessageType::StartMaskBasedBruteForce)
+        {
+            Timer timer;
+            spdlog::trace("Received mask based brute force request...");
 
-   timer.End();
-   std::cout << timer.GetTime("s")<< "s" << std::endl;
-   
-   return 0;
+            auto[alphabets, range, algorithm] = MessageParser::ParseMaskBasedAttackMassage(message);
+
+            MaskBasedBruteForceAttack am(std::move(hashSet), std::move(alphabets), range, algorithm);
+
+            spdlog::info("Started mask based brute force attack...");
+            timer.Start();
+            StartAttack(am);
+            timer.End();
+            spdlog::trace("Finished in {:03.2f}s", timer.GetTime("s"));
+            std::vector<hash_password_pair> crackedPasswords = am.GetCrackedPasswords();
+            spdlog::info("Sending back results...");
+            client.Post(MessageParser::AssembleCrackedPasswordsMessage(crackedPasswords, timer));
+        }
+
+        else if (message[0] == MessageType::HashSet)
+        {
+            spdlog::trace("Receiving hash list from the server...");
+            MessageParser::ParseHashSetMessage(message, hashSet);
+        }
+
+        else if (message[0] == MessageType::StopClient)
+            client.Stop();
+
+    };
+
+    return OnMessage;
 }
 
 
-//std::vector<char> vBuffer(20 * 1024);
-//
-//void GrabSomeData(asio::ip::tcp::socket& socket)
-//{
-//    socket.async_read_some(asio::buffer(vBuffer.data(), vBuffer.size()),
-//        [&](std::error_code ec, std::size_t length)
-//        {
-//            if (!ec)
-//            {
-//                std::cout << "Read " << length << " bytes\n";
-//
-//                for (int i = 0; i < length; i++)
-//                    std::cout << vBuffer[i];
-//
-//                GrabSomeData(socket);
-//            }
-//
-//        }
-//    );
-//}
-//
-//
-//int main()
-//{
-//    asio::error_code ec;
-//
-//    asio::io_context context;
-//
-//    asio::io_context::work idleWork(context);
-//
-//    std::thread thrContext = std::thread([&]() { context.run(); });
-//
-//    asio::ip::tcp::endpoint endpoint(asio::ip::make_address("127.0.0.1", ec), 8000);
-//
-//    asio::ip::tcp::socket socket(context);
-//
-//    socket.connect(endpoint, ec);
-//
-//    if (!ec)
-//    {
-//        std::cout << "Connected!" << std::endl;
-//    }
-//    else
-//    {
-//        std::cout << "Failed to connect to address:\n" << ec.message() << std::endl;
-//    }
-//
-//    while (socket.is_open())
-//    {
-//
-//      while (socket.available() == 0);
-//      GrabSomeData(socket);
-//    }
-//    context.stop();
-//    if (thrContext.joinable()) thrContext.join();
-//    return 0;
-//}
+int main(int argc, char* argv[])
+{
+    //3 %L%L%L%L%L%L 0 aaaaaa zzzzzz
+    spdlog::set_level(spdlog::level::level_enum::trace);
+    spdlog::set_pattern(DEFAULT_LOG_PATTERN);
+    #ifdef TESTING_LOCALLY 
+        
+        TCPClient client("127.0.0.1", 21);
+    #else
+        TCPClient client("26.197.251.191", 8900);
+
+    #endif
+
+    std::set<std::string> hashSet;
+    std::vector<std::string> dictionary;
+
+    #ifdef TESTING_LOCALLY
+    {
+        std::string line;
+        std::ifstream infile("example0.hash");
+        while (std::getline(infile, line))
+            hashSet.insert(line);
+        infile.close();
+    }
+    #endif
+
+    client.OnMessage = GetMessageHandler(client, hashSet, dictionary);
+    client.Run();
+
+    return 0;
+}
+
 
 

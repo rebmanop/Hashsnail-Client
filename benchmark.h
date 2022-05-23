@@ -1,7 +1,6 @@
-#ifndef _BENCHMARK_H
-#define _BENCHMARK_H
-
+#pragma once
 #include <thread>
+#include <mutex>
 #include "algorithms.h"
 
 class Benchmark
@@ -10,16 +9,17 @@ public:
 	Benchmark() = default;
 	Benchmark(int benchTimeSeconds);
 
-	void RunBenchmark();
+	void RunSingleThread();
+	void RunMultiThread();
+
 	double GetResults();
 
 	~Benchmark() = default;
+	
+public:
+	int m_BenchTimeSeconds = 5;
 
 private:
-	double resultHs = 0;
-	int m_BenchTimeSeconds = 5;
+	double resultMHs = 0;
 	MD5Handler md5;
 };
-
-
-#endif
