@@ -51,6 +51,8 @@ MessageHandler GetMessageHandler(TCPClient& client, std::set<std::string>& hashS
             spdlog::trace("Starting benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
             benchmark.RunMultiThread();
 
+            spdlog::info("Benchmark result: {:03.2f}MH/s", benchmark.GetResults());
+
             spdlog::trace("Sending back benchmark results."); 
             client.Post(MessageParser::AssembleBenchmarkResultMessage(benchmark));
 

@@ -364,6 +364,7 @@ FodyWeavers.xsd
 
 asio-1.22.1/
 asio-include/
+bin-int/
 
 *.sln
 *.user
