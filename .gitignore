@@ -364,3 +364,8 @@ FodyWeavers.xsd
 
 asio-1.22.1/
 asio-include/
+
+*.sln
+*.user
+*.vcxproj.filters
+*.vcxproj

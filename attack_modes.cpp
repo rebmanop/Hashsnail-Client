@@ -205,7 +205,7 @@ std::vector<Range> DictionaryAttack::SubdivideRange(int numberOfDivisions)
     for (int i = 1; i <= numberOfDivisions; i++)
     {
         tempIndex = startIndex + hashesPerThread;
-        if (i == numberOfDivisions && tempIndex < endIndex)
+        if (i == numberOfDivisions && tempIndex <= endIndex)
             ranges.push_back(Range(startIndex, endIndex));
         else
             ranges.push_back(Range(startIndex, tempIndex));

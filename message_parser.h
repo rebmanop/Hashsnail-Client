@@ -12,6 +12,7 @@
 #include <set>
 #include "attack_modes.h"
 #include "timer.h"
+#include <iostream>
 
 struct MessageType
 {
@@ -22,19 +23,25 @@ struct MessageType
     const static char StartDictionaryAttack = '4';
     const static char StartBruteForceAttack = '5';
     const static char CrackedPasswords = '6';
+    const static char Dictionary = '7';
     const static char StopClient = 's';
 };
 
 namespace MessageParser
 {
 	typedef std::tuple<std::vector<std::string>, Range, std::shared_ptr<AlgorithmHandler>> mask_based_attack_params;
+
 	
     mask_based_attack_params ParseMaskBasedAttackMassage(std::string message);
+    std::shared_ptr<AlgorithmHandler> ParseDictionaryAttackStartMessage(std::string message);
+
 	Benchmark ParseBenchmarkRequestMessage(const std::string&  message);
 	void ParseHashSetMessage(const std::string& message, std::set<std::string>& hashSet);
+    void ParseDictionaryMessage(const std::string& message, std::vector<std::string>& dictionary);
+
     
 	std::string AssembleCrackedPasswordsMessage(const std::vector<hash_password_pair>& crackedPasswords, Timer timer);
-    std::string AssembleBenchmarkResultString(Benchmark benchmark);
+    std::string AssembleBenchmarkResultMessage(Benchmark benchmark);
     
     std::vector<std::string> Split(std::string& str, char delimiter = ' ');
 }

@@ -23,6 +23,13 @@ namespace MessageParser {
         return {alphabets, range, algorithm};
     }
 
+    std::shared_ptr<AlgorithmHandler> ParseDictionaryAttackStartMessage(std::string message)
+    {
+        std::shared_ptr<AlgorithmHandler> algorithm = DetermineAlgorithm(message[2]);
+        spdlog::trace("[MESSAGE PARSER] Agorithm: {}", algorithm->GetAlgorithmName());
+
+        return algorithm;
+    }
 
     Benchmark ParseBenchmarkRequestMessage(const std::string& message)
     {
@@ -43,6 +50,14 @@ namespace MessageParser {
              hashSet.insert(hash);
     }
 
+    void ParseDictionaryMessage(const std::string& message, std::vector<std::string>& dictionary)
+    {
+        std::stringstream ss(message.substr(2));
+        std::string password;
+        while (ss >> password)
+            dictionary.push_back(password);
+    }
+
     std::string AssembleCrackedPasswordsMessage(const std::vector<hash_password_pair>& crackedPasswords, Timer timer)
     {
         std::string messageToSend;
@@ -57,7 +72,7 @@ namespace MessageParser {
         return messageToSend;
     }
 
-    std::string AssembleBenchmarkResultString(Benchmark benchmark)
+    std::string AssembleBenchmarkResultMessage(Benchmark benchmark)
     {
         std::string messageToSend;
         messageToSend.push_back(MessageType::BenchmarkResult);
@@ -65,7 +80,6 @@ namespace MessageParser {
 
         return messageToSend;
     }
-
 
     std::vector<std::string> MessageParser::Split(std::string& str, char delimiter)
     {
