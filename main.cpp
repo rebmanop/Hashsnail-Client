@@ -13,7 +13,7 @@
 #include "message_parser.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-//#define TESTING_LOCALLY 
+#define TESTING_LOCALLY 
 
 #define DEFAULT_LOG_PATTERN "%^%v%$"
 #define WHILE_ATTACKING_LOG_PATTERN "%^[%T]%$ %v"
@@ -48,10 +48,17 @@ MessageHandler GetMessageHandler(TCPClient& client, std::set<std::string>& hashS
 
             Benchmark benchmark = MessageParser::ParseBenchmarkRequestMessage(message);
             
-            spdlog::trace("Starting benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
+            spdlog::trace("Starting multi thread benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
             benchmark.RunMultiThread();
+            double benchmarkMultiThreadResult = benchmark.GetResults();
 
-            spdlog::info("Benchmark result: {:03.2f}MH/s", benchmark.GetResults());
+            spdlog::trace("Starting single thread benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
+            benchmark.RunSingleThread();
+            double benchmarkSingleThreadResult = benchmark.GetResults();
+
+            spdlog::info("Benchmark multi thread result: {:03.2f}MH/s", benchmarkMultiThreadResult);
+            spdlog::info("Benchmark single thread result: {:03.2f}MH/s", benchmarkSingleThreadResult);
+
 
             spdlog::trace("Sending back benchmark results."); 
             client.Post(MessageParser::AssembleBenchmarkResultMessage(benchmark));
