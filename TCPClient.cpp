@@ -52,6 +52,33 @@ void TCPClient::Post(const std::string& message)
 	}
 }
 
+bool TCPClient::IsValidIp(const std::string& ip)
+{
+	io::error_code ec;
+	io::ip::address::from_string(ip, ec);
+	if (ec)
+		return false;
+	else
+		return true;
+}
+
+
+bool TCPClient::IsValidPort(const std::string& port)
+{
+	int intPort = -1;
+
+	try {
+		intPort = std::stoi(port); 
+		if (intPort < 0 && intPort > 65535)
+			throw std::out_of_range("invalid port number");
+	}
+	catch (std::invalid_argument) { return false; }
+	catch (std::out_of_range) { return false; }
+	
+	return true;
+}
+
+
 void TCPClient::AsyncRead()
 {
 	io::async_read_until(m_Socket, m_StreamBuffer, '\n', [this](std::error_code ec, size_t bytesTransferred)

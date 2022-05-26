@@ -17,7 +17,7 @@
 
 
 namespace io = asio;
-using MessageHandler = std::function<void(const std::string&)>;
+typedef  std::function<void(const std::string&)> MessageHandler;
 
 class TCPClient
 {
@@ -27,6 +27,9 @@ public:
 	void Run();
 	void Stop();
 	void Post(const std::string& message);
+
+	static bool IsValidIp(const std::string& ip);
+	static bool IsValidPort(const std::string& port);
 
 
 private:

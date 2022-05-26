@@ -13,7 +13,6 @@
 #include "message_parser.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-#define TESTING_LOCALLY 
 
 #define DEFAULT_LOG_PATTERN "%^%v%$"
 #define WHILE_ATTACKING_LOG_PATTERN "%^[%T]%$ %v"
@@ -47,18 +46,11 @@ MessageHandler GetMessageHandler(TCPClient& client, std::set<std::string>& hashS
             spdlog::trace("Received benchmark request.");
 
             Benchmark benchmark = MessageParser::ParseBenchmarkRequestMessage(message);
-            
+
             spdlog::trace("Starting multi thread benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
             benchmark.RunMultiThread();
-            double benchmarkMultiThreadResult = benchmark.GetResults();
 
-            spdlog::trace("Starting single thread benchmark. ({}s)", benchmark.m_BenchTimeSeconds);
-            benchmark.RunSingleThread();
-            double benchmarkSingleThreadResult = benchmark.GetResults();
-
-            spdlog::info("Benchmark multi thread result: {:03.2f}MH/s", benchmarkMultiThreadResult);
-            spdlog::info("Benchmark single thread result: {:03.2f}MH/s", benchmarkSingleThreadResult);
-
+            spdlog::info("Multi thread benchmark result: {:03.2f}MH/s", benchmark.GetResults());
 
             spdlog::trace("Sending back benchmark results."); 
             client.Post(MessageParser::AssembleBenchmarkResultMessage(benchmark));
@@ -136,31 +128,39 @@ int main(int argc, char* argv[])
     //3 %L%L%L%L%L%L 0 aaaaaa zzzzzz
 
     //7 anMD5hash canterbury regismustdie reichenburg databases fingerprint EngIneER 
+
+
     spdlog::set_level(spdlog::level::level_enum::trace);
     spdlog::set_pattern(DEFAULT_LOG_PATTERN);
-    #ifdef TESTING_LOCALLY 
-        
-        TCPClient client("127.0.0.1", 21);
-    #else
-        TCPClient client("26.197.251.191", 8900);
-
-    #endif
-
+    
     std::set<std::string> hashSet;
     std::vector<std::string> dictionary;
 
-    #ifdef TESTING_LOCALLY 
+    std::string addressAndPort;
+    std::cout << "Hashsnail::Enter ip address and port (x.x.x.x:port): ";
+    std::cin >> addressAndPort;
 
-    std::string line;
-    std::ifstream infile("example0.hash");
-    while (std::getline(infile, line))
-        hashSet.insert(line);
-    infile.close();
-    
-    #endif
 
-    client.OnMessage = GetMessageHandler(client, hashSet, dictionary);
-    client.Run();
+    std::vector <std::string> tokens;
+
+    if (addressAndPort.contains(':'))
+         tokens = MessageParser::Split(addressAndPort, ':');
+    else
+        spdlog::critical("Incorrect ip address.");
+
+    if (TCPClient::IsValidIp(tokens[0]) && TCPClient::IsValidPort(tokens[1]))
+    {
+        std::string ip = tokens[0];
+        int port = std::stoi(tokens[1]);
+        TCPClient client(ip, port);
+        client.OnMessage = GetMessageHandler(client, hashSet, dictionary);
+        client.Run();
+    }
+    else
+    {
+        spdlog::critical("Incorrect ip address.");
+        exit(-1);
+    }
 
     return 0;
 }
