@@ -27,7 +27,19 @@ void Benchmark::RunMultiThread()
 	
 	std::vector<std::thread> threads;
 	for (std::size_t i = 0; i < nThreads; i++)
-		threads.emplace_back([&]() { while (!finished) { md5.HashPermutation("bench"); std::lock_guard<std::mutex> lock(hashCounterMutex);  hashCounter++; }});
+		threads.emplace_back([&]()
+		{ 
+			unsigned long long localHashCounter = 0;
+			while (!finished) 
+			{
+				md5.HashPermutation("bench"); 
+				localHashCounter++; 
+			}
+			hashCounterMutex.lock();
+			hashCounter += localHashCounter;
+			hashCounterMutex.unlock();
+
+		});
 
 	std::this_thread::sleep_for(std::chrono::seconds(m_BenchTimeSeconds));
 	finished = true;
@@ -38,9 +50,12 @@ void Benchmark::RunMultiThread()
 	resultMHs = hashCounter / (double)m_BenchTimeSeconds / 1000000;
 }
 
+int Benchmark::GetBenchmarkRunTime() const
+{
+	return m_BenchTimeSeconds;
+}
 
-
-double Benchmark::GetResults()
+double Benchmark::GetResults() const
 {
 	return resultMHs;
 }

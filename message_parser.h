@@ -13,6 +13,7 @@
 #include "attack_modes.h"
 #include "timer.h"
 #include <iostream>
+#include "tcp_client.h"
 
 struct MessageType
 {
@@ -38,6 +39,7 @@ namespace MessageParser
 	Benchmark ParseBenchmarkRequestMessage(const std::string&  message);
 	void ParseHashSetMessage(const std::string& message, std::set<std::string>& hashSet);
     void ParseDictionaryMessage(const std::string& message, std::vector<std::string>& dictionary);
+    std::tuple<std::string, int, bool> ParseIpFromKeyboard(std::string& addressAndPort);
 
     
 	std::string AssembleCrackedPasswordsMessage(const std::vector<hash_password_pair>& crackedPasswords, Timer timer);

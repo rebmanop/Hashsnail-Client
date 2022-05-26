@@ -50,6 +50,7 @@ namespace MessageParser {
              hashSet.insert(hash);
     }
 
+
     void ParseDictionaryMessage(const std::string& message, std::vector<std::string>& dictionary)
     {
         std::stringstream ss(message.substr(2));
@@ -57,6 +58,30 @@ namespace MessageParser {
         while (ss >> password)
             dictionary.push_back(password);
     }
+
+
+    std::tuple<std::string, int, bool> ParseIpFromKeyboard(std::string& addressAndPort)
+    {
+        std::string ip = "0.0.0.0";
+        int port = 0;
+        bool inputIsCorrect = false;
+        
+        std::vector<std::string> tokens = MessageParser::Split(addressAndPort, ':');
+
+        if (tokens.size() == 2 && TCPClient::IsValidIp(tokens[0]) && TCPClient::IsValidPort(tokens[1]))
+        {
+            ip = tokens[0];
+            port = std::stoi(tokens[1]);
+            inputIsCorrect = true;
+            return {ip, port, inputIsCorrect};
+        }
+        else
+        {
+            spdlog::critical("Incorrect ip address or port. Restart and try again.");
+            return{ip, port, inputIsCorrect};
+        }
+    }
+
 
     std::string AssembleCrackedPasswordsMessage(const std::vector<hash_password_pair>& crackedPasswords, Timer timer)
     {

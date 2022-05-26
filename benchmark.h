@@ -12,7 +12,9 @@ public:
 	void RunSingleThread();
 	void RunMultiThread();
 
-	double GetResults();
+	int GetBenchmarkRunTime() const;
+
+	double GetResults() const;
 
 	~Benchmark() = default;
 	

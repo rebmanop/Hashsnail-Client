@@ -1,4 +1,4 @@
-#include "TCPClient.h"
+#include "tcp_client.h"
 
 TCPClient::TCPClient(const std::string& address, int port)
 	:m_Socket(m_IoContext)
@@ -65,16 +65,17 @@ bool TCPClient::IsValidIp(const std::string& ip)
 
 bool TCPClient::IsValidPort(const std::string& port)
 {
-	int intPort = -1;
+	int intPort;
 
-	try {
-		intPort = std::stoi(port); 
-		if (intPort < 0 && intPort > 65535)
-			throw std::out_of_range("invalid port number");
+	try
+	{
+		intPort = stoi(port);
+		if (intPort < 0 || intPort > 65535)
+			throw(std::out_of_range("incorrect port number"));
 	}
 	catch (std::invalid_argument) { return false; }
 	catch (std::out_of_range) { return false; }
-	
+
 	return true;
 }
 
@@ -92,10 +93,9 @@ void TCPClient::OnRead(std::error_code ec, size_t bytesTransferred)
 	if (ec)
 	{
 		Stop();
-		std::cout << "[ERROR]: " << ec << std::endl;
+		spdlog::error("[Socket Read Error] {} ({})", ec.message(), ec.value());
 		return;
 	}
-
 	std::stringstream message;
 	message << std::istream{ &m_StreamBuffer }.rdbuf();
 	OnMessage(message.str());
@@ -115,6 +115,7 @@ void TCPClient::OnWrite(std::error_code ec, size_t bytesTransferred)
 	if (ec)
 	{
 		Stop();
+		spdlog::error("[Socket Write Error] {} ({})", ec.message(), ec.value());
 		return;
 	}
 
