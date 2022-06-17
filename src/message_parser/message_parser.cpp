@@ -1,3 +1,17 @@
+#include <tuple>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <spdlog/spdlog.h>
+#include <memory>
+#include <iostream>
+#include "../range/range.h"
+#include "../utils/timer.h"
+#include "../utils/benchmark.h"
+#include "../tcp_client/tcp_client.h"
+#include "../core/attack_modes.h"
+#include "../algorithms/algorithms.h"
+#include "../alphabets/alphabets.h"
 #include "message_parser.h"
 
 
@@ -12,9 +26,9 @@ namespace MessageParser {
 
         std::vector<std::string> alphabets;
         for (auto& c : mask)
-            alphabets.push_back(GetAlphabet(c));
+            alphabets.push_back(Alphabet::GetAlphabet(c));
 
-        std::shared_ptr<AlgorithmHandler> algorithm = DetermineAlgorithm(tokens[2][0]);
+        std::shared_ptr<AlgorithmHandler> algorithm = GetCorrectAlgorithm(tokens[2][0]);
         spdlog::trace("[MESSAGE PARSER] Agorithm: {}", algorithm->GetAlgorithmName());
 
         Range range(tokens[3], tokens[4]);
@@ -25,7 +39,7 @@ namespace MessageParser {
 
     std::shared_ptr<AlgorithmHandler> ParseDictionaryAttackStartMessage(std::string message)
     {
-        std::shared_ptr<AlgorithmHandler> algorithm = DetermineAlgorithm(message[2]);
+        std::shared_ptr<AlgorithmHandler> algorithm = GetCorrectAlgorithm(message[2]);
         spdlog::trace("[MESSAGE PARSER] Agorithm: {}", algorithm->GetAlgorithmName());
 
         return algorithm;

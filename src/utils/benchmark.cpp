@@ -1,3 +1,5 @@
+#include <thread>
+#include <mutex>
 #include "benchmark.h"
 
 Benchmark::Benchmark(int benchTimeSeconds)

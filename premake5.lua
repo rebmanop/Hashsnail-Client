@@ -3,8 +3,8 @@ workspace "Hashsnail-Client"
 
 	configurations
 	{
-		"Debug",
-		"Release"
+		"Release",
+		"Debug"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
@@ -18,8 +18,8 @@ project "Hashsnail-Client"
 
 	files
 	{
-		"*.h",
-		"*.cpp",
+		"src/**.h",
+		"src/**.cpp",
 	}
 
 	includedirs
@@ -33,10 +33,12 @@ project "Hashsnail-Client"
     ["Header Files"] = { "**.h", "**.hpp" },
     ["Source Files/*"] = {"**.c", "**.cpp"},
 	}
+	defines {"ASIO_STANDALONE"}
 
 	filter "system:windows"
 		cppdialect "c++20"
 		systemversion "latest"
+		defines { "_WIN32_WINNT=0x0A00"}
 
 
 	filter "configurations:Debug"

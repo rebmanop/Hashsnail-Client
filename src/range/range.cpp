@@ -1,4 +1,6 @@
+#include <string>
 #include "range.h"
+
 
 Range::Range(const std::string startPermutation, const std::string endPermutation)
 {

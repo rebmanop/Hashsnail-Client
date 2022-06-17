@@ -1,12 +1,18 @@
+#include <iostream>
+#include <functional>
+#include <asio/ts/buffer.hpp>
+#include <asio/ts/internet.hpp>
+#include "spdlog/spdlog.h"
 #include "tcp_client.h"
+
 
 TCPClient::TCPClient(const std::string& address, int port)
 	:m_Socket(m_IoContext)
 {
 	io::ip::tcp::resolver resolver{ m_IoContext };
 	m_Endpoints = resolver.resolve(address, std::to_string(port));
-	
 }
+
 
 void TCPClient::Run()
 {
@@ -27,6 +33,7 @@ void TCPClient::Run()
 
 	m_IoContext.run();
 }
+
 
 void TCPClient::Stop()
 {
@@ -51,6 +58,7 @@ void TCPClient::Post(const std::string& message)
 		AsyncWrite(); 
 	}
 }
+
 
 bool TCPClient::IsValidIp(const std::string& ip)
 {
@@ -88,6 +96,7 @@ void TCPClient::AsyncRead()
 	});
 }
 
+
 void TCPClient::OnRead(std::error_code ec, size_t bytesTransferred)
 {
 	if (ec)
@@ -102,6 +111,7 @@ void TCPClient::OnRead(std::error_code ec, size_t bytesTransferred)
 	AsyncRead();
 }
 
+
 void TCPClient::AsyncWrite()
 {
 	io::async_write(m_Socket, io::buffer(m_OutgoingMessages.front()), [this](std::error_code ec, size_t bytesTransferred)
@@ -109,6 +119,7 @@ void TCPClient::AsyncWrite()
 			OnWrite(ec, bytesTransferred);
 	});
 }
+
 
 void TCPClient::OnWrite(std::error_code ec, size_t bytesTransferred)
 {

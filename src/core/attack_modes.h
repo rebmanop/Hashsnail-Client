@@ -1,15 +1,7 @@
 #pragma once
-#include<set>
-#include<vector>
-#include <mutex>
-#include <iostream>
-#include "range.h"
-#include "algorithms.h"
-#include "spdlog/spdlog.h"
-
+#include <set>
 
 typedef std::pair<std::string, std::string> hash_password_pair;
-
 
 class AttackMode
 {

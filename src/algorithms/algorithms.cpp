@@ -1,27 +1,32 @@
+#include "md5.h"
+#include "sha1.h"
 #include "algorithms.h"
-
 
 std::string MD5Handler::HashPermutation(const std::string& str) const
 {
 	return md5(str);
 }
 
-std::string MD5Handler::GetAlgorithmName() const
-{
-	return "MD5";
-}
 
 std::string SHA1Handler::HashPermutation(const std::string& str) const
 { 
 	return sha1(str);
 }
 
+
+std::string MD5Handler::GetAlgorithmName() const
+{
+	return "MD5";
+}
+
+
 std::string SHA1Handler::GetAlgorithmName() const
 {
 	return "SHA1";
 }
 
-std::shared_ptr<AlgorithmHandler> DetermineAlgorithm(char token)
+
+std::shared_ptr<AlgorithmHandler> GetCorrectAlgorithm(char token)
 {
 	std::shared_ptr<AlgorithmHandler> algorithm = nullptr;
 

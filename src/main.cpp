@@ -1,15 +1,16 @@
 #include <sstream>
+#include <iostream>
 #include <fstream>
 #include <thread>
-#include "timer.h"
-#include "range.h"
-#include "alphabets.h"
-#include "benchmark.h"
-#include "tcp_client.h"
-#include "algorithms.h"
-#include "attack_modes.h"
+#include "utils/timer.h"
+#include "range/range.h"
 #include "spdlog/spdlog.h"
-#include "message_parser.h"
+#include "alphabets/alphabets.h"
+#include "utils/benchmark.h"
+#include "tcp_client/tcp_client.h"
+#include "algorithms/algorithms.h"
+#include "core/attack_modes.h"
+#include "message_parser/message_parser.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
 
@@ -130,7 +131,7 @@ int main()
     std::vector<std::string> dictionary;
 
     std::string addressAndPort;
-    std::cout << "Hashsnail::Enter ip address and port (x.x.x.x:port): ";
+    std::cout << "Enter ip address and port (x.x.x.x:port): ";
     std::cin >> addressAndPort;
 
     auto[ip, port, inputIsCorrect] = MessageParser::ParseIpFromKeyboard(addressAndPort);
@@ -147,7 +148,3 @@ int main()
 
     return 0;
 }
-
-
-
- 

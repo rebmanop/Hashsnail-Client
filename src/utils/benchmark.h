@@ -1,7 +1,6 @@
 #pragma once
-#include <thread>
-#include <mutex>
-#include "algorithms.h"
+#include "../algorithms/algorithms.h"
+
 
 class Benchmark
 {

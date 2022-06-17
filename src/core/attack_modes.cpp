@@ -1,4 +1,11 @@
+#include<vector>
+#include <mutex>
+#include <iostream>
+#include "spdlog/spdlog.h"
+#include "../range/range.h"
+#include "../algorithms/algorithms.h"
 #include "attack_modes.h"
+
 
 
 #define PRINT_MUTATIONS 0
@@ -69,7 +76,6 @@ void BruteForceAttack::StartThread(const Range& range)
 }
 
 
-
 void MaskBasedBruteForceAttack::StartThread(const Range& range)
 {
     int passwordLength = m_Alphabets.size();
@@ -114,7 +120,6 @@ void MaskBasedBruteForceAttack::StartThread(const Range& range)
 }
 
 
-
 void DictionaryAttack::StartThread(const Range& range)
 {
 
@@ -134,14 +139,12 @@ void DictionaryAttack::StartThread(const Range& range)
 }
 
 
-
 std::vector<Range> BruteForceAttack::SubdivideRange(int numberOfDivisions)
 {
     std::vector<Range> ranges;
     ranges.emplace_back("", "");
     return ranges;
 }
-
 
 
 std::vector<Range> MaskBasedBruteForceAttack::SubdivideRange(int numberOfDivisions)
@@ -191,7 +194,6 @@ std::vector<Range> MaskBasedBruteForceAttack::SubdivideRange(int numberOfDivisio
 }
 
 
-
 std::vector<Range> DictionaryAttack::SubdivideRange(int numberOfDivisions)
 {
     std::vector<Range> ranges;
@@ -214,7 +216,6 @@ std::vector<Range> DictionaryAttack::SubdivideRange(int numberOfDivisions)
     }
     return ranges;
 }
-
 
 
 void BruteForceAttack::BruteForceRec(const std::string& currentPermutation, const std::string endPermutation, bool& reachedEndPermutation)
@@ -251,7 +252,6 @@ void BruteForceAttack::BruteForceRec(const std::string& currentPermutation, cons
 }
 
 
-
 std::pair<int, int> DictionaryAttack::FindIndexRange(const Range& range)
 {
     int startIndex = 0;
@@ -267,7 +267,6 @@ std::pair<int, int> DictionaryAttack::FindIndexRange(const Range& range)
 
     return { startIndex, endIndex };
 }
-
 
 
 long long MaskBasedBruteForceAttack::CalculatePermutationNumber(const std::string& permutation, long long period[])
