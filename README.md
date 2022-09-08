@@ -1,2 +1,5 @@
 # Hashsnail-Client
-Hashsnail is a barebones, slow, and CPU based clone of the most popular password-cracking utility "Hashcat", but with one key difference - it uses distributed computing with client-server architecture to crack passwords. And this repository is the client side of the whole system.
+Hashsnail is a barebones, slow, and CPU based clone of the most popular password-cracking utility "Hashcat", but with one key difference - it uses distributed computing with client-server architecture to crack passwords. And this repository is the client side of the whole system. The application was written as a University DSA course final project, client side was written by me and server side by my colleagues.
+
+# How it works
+The main idea is to divide amount of work among clients based on their relative performance. For example, range of work for bruteforce attack can look something like aaaa-zzzz, it means client with this work range will be bruteforcing all the 4 letter permutations from a to z. We wrote an algorithm that divides amount of work for any number of clients in this manner. It's done with a performance benchmark that starts before doing any work, then clients send benchmark results back to the server so it can use the algorithm to determine amount of work for every client.
