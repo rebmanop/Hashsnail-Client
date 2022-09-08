@@ -31,7 +31,7 @@ project "Hashsnail-Client"
 	vpaths 
 	{
     ["Header Files"] = { "**.h", "**.hpp" },
-    ["Source Files/*"] = {"**.c", "**.cpp"},
+    ["Source Files"] = {"**.c", "**.cpp"},
 	}
 	defines {"ASIO_STANDALONE"}
 
